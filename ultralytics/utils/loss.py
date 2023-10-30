@@ -75,9 +75,17 @@ class BboxLoss(nn.Module):
         # loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
         
         # modified iou
-        iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+        """
+        select different IoU here
+        set iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True/SIoU=True/EIoU=True/WIou=True, Focal=True/)
+        
+        """
+        iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, SIoU=True)
         if type(iou) is tuple:
-            loss_iou = ((1.0 - iou[0]) * iou[1].detach() * weight).sum() / target_scores_sum
+            if len(iou) == 2:
+                loss_iou = ((1.0 - iou[0]) * iou[1].detach() * weight).sum() / target_scores_sum
+            else:
+                loss_iou = (iou[0] * iou[1] * weight).sum() / target_scores_sum
         else:
             loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
